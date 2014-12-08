@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
@@ -19,6 +20,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.SWT;
+
+import com.ibm.icu.util.Calendar;
 
 public class MainMenu
 {
@@ -26,6 +31,7 @@ public class MainMenu
   private Text key;
   private Text encry;
   private Text outpath;
+  private Combo c_type;
 
   public static void main(String[] args)
   {
@@ -64,6 +70,16 @@ public class MainMenu
     this.key = new Text(this.shldes, 2048);
     this.key.setBounds(126, 41, 289, 25);
     this.key.setTextLimit(24);
+    
+    c_type = new Combo(shldes, SWT.NONE);
+    c_type.setItems(new String[] {"10", "30", "50", "100", "300"});
+    c_type.setBounds(126, 185, 88, 25);
+
+    
+    Label label_2 = new Label(shldes, SWT.NONE);
+    label_2.setText("\u8BF7\u9009\u62E9\u9762\u503C\u5927\u5C0F:");
+    label_2.setBounds(31, 185, 90, 18);
+    
 
     File file1 = new File("c:/key.txt");
     if (!file1.exists())
@@ -96,10 +112,13 @@ public class MainMenu
     {
       public void widgetSelected(SelectionEvent e) {
         FileDialog dialog = new FileDialog(MainMenu.this.shldes, 4096);
-        dialog.setText("Source Folder Selection");
+        dialog.setText("请选择待加密文件");
+        //String filepath = dialog.open();
+        dialog.open();
         dialog.setFilterExtensions(new String[] { "*.*" });
-        String filepath = dialog.open();
-        if (dialog != null)
+        String	filepath = null;
+        filepath = dialog.getFilterPath()+"\\"+dialog.getFileName();
+        if (filepath!=null&&!filepath.equals("\\"))
         {
           MainMenu.this.encry.setText(filepath);
         }
@@ -136,7 +155,17 @@ public class MainMenu
           mb.open();
           return;
         }
-
+      
+        if (MainMenu.this.c_type.getText().length()==0)
+        {
+          MessageBox mb = new MessageBox(MainMenu.this.shldes, 1);
+          mb.setText("错误提示!");
+          mb.setMessage("请选择面值类型！");
+          mb.open();
+          return;
+        }
+        
+        
         File file = new File(MainMenu.this.encry.getText());
         BufferedReader reader = null;
         try
@@ -145,6 +174,7 @@ public class MainMenu
           reader = new BufferedReader(new FileReader(file));
           String tempString = null;
           int line = 0;
+
           File f = new File(MainMenu.this.outpath.getText() + "/" + "encry.avl");
           BufferedWriter bw = new BufferedWriter(new FileWriter(f, false));
           bw.write("");
@@ -191,6 +221,68 @@ public class MainMenu
           mb.open();
           bw.close();
           reader.close();
+          /** 修改文件名称 **/
+          /** 文件命名规则
+          DZCARD_生产日期(YYYYMMDDSSSS)_卡类型(面值)_卡商_数量.avl
+           **/
+          String	rootpath = f.getParent();
+          Calendar	cal = Calendar.getInstance();
+          int	year = cal.get(Calendar.YEAR);
+          int	mon = cal.get(Calendar.MONTH)+1;
+          int	day = cal.get(Calendar.DAY_OF_MONTH);
+          int	hour = cal.get(Calendar.HOUR);
+          int	min = cal.get(Calendar.MINUTE);
+          int	sec = cal.get(Calendar.SECOND);
+          String	syear= Integer.toString(year);
+          String    smon;
+          String	sday;
+          String	shour;
+          String	smin;
+          String	ssec;
+          if(mon<10)
+          {
+              	smon="0"+Integer.toString(mon);
+          }else
+          {
+        	 	smon=Integer.toString(mon);
+          }
+          if(day<10)
+          {
+        	  	sday = "0"+Integer.toString(day);
+          }else
+          {
+        	  	sday = "0"+Integer.toString(day);
+          }
+          if(hour<10)
+          {
+        	  	shour="0"+Integer.toString(hour);
+          }else
+          {
+        	  	shour=Integer.toString(hour);
+          }
+          if(min<10)
+          {
+        	 	smin="0"+Integer.toString(min);
+          }else
+          {
+        	  	smin=Integer.toString(min);
+          }
+          if(sec<10)
+          {
+        	  	ssec="0"+Integer.toString(sec);
+          }else
+          {
+        	  	ssec=Integer.toString(sec);
+          }
+          String	da = syear+smon+sday+shour+smin+ssec;
+          File rnamefile = new File(rootpath+File.separator+"DZCARD"+"_"+da+"_"+c_type.getText()+"_"+"SYJ"+"_"+line+"."+"avl");
+          if(f.renameTo(rnamefile))
+          {
+        	  System.out.println("修改文件成功");
+          }else
+          {
+        	  System.out.println("修改文件失败");
+          }
         }
         catch (IOException e1) {
           e1.printStackTrace();
@@ -240,9 +332,11 @@ public class MainMenu
     {
       public void widgetSelected(SelectionEvent e) {
         DirectoryDialog dialog = new DirectoryDialog(MainMenu.this.shldes, 4096);
-        dialog.setText("Source Folder Selection");
-        String filepath = dialog.open();
-        if (dialog != null)
+        dialog.setText("请选择输出文件路径");
+        dialog.open();
+        String filepath = null;
+        filepath = dialog.getFilterPath();
+        if (filepath != null&&!filepath.equals("\\"))
         {
           MainMenu.this.outpath.setText(filepath);
         }
