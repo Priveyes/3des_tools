@@ -72,7 +72,7 @@ public class MainMenu
     this.key.setTextLimit(24);
     
     c_type = new Combo(shldes, SWT.NONE);
-    c_type.setItems(new String[] {"10", "30", "50", "100", "300"});
+    c_type.setItems(new String[] {"10", "30", "50", "100", "300", "500"});
     c_type.setBounds(126, 185, 88, 25);
 
     
